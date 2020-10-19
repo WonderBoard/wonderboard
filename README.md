@@ -34,3 +34,6 @@ deactivate enviroment
 deactivate
 
 
+TODO Notes deployment:
+Find way to make automate build file to go into root when building frotend
+Push database code. (with a possible login feature as well)
