@@ -35,5 +35,5 @@ deactivate
 
 
 TODO Notes deployment:
-Find way to make automate build file to go into root when building frotend
+Find way to automate build file to go into root when building for frontend
 Push database code. (with a possible login feature as well)
