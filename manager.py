@@ -78,42 +78,13 @@ def get_current_time():
 
     return {'time': time.time()}
 
+
+
+
 @app.route("/api/register", methods=["POST", "GET"])
 def register():
-    #Convert json request to dict
+    
     json_response = request.json
-    """ Register user """
-    # print("hello")
-    '''
-    Testing things
-    '''
-    # print(request.data)
-    # x =  '{ "name":"John", "age":30, "city":"New York"}'
-    # grabbing data and converting to Dict
-    # turns json into dict
-    # x = json.loads(x)
-    # y = json.loads(json_response)
-    # print(x)
-    if request.method == "POST":
-    
-
-    if is json_reponse["username"]:
-        return request.json
-
-        # Ensure username was submitted
-        print("hello")
-        # if not request.form.get("username"):
-        #     return render_template("error.html", message="must provide username")
-    if request.method == "GET":
-
-        print("Get request")
-    
-    # json_response = request.json
-
-    # grabbing value
-    # print(json_response['name'])
-
-    
 
     return json_response
     # Forget any user_id
@@ -122,3 +93,31 @@ def register():
     # User reached route via POST (as by submitting a form via POST)
 # @app.route("/register", methods=["GET", "POST"])
 # def register():
+
+
+#Convert json request to dict
+    # json_response = request.json
+    """ Register user """
+    # print("hello")
+    # '''
+    # Testing things
+    # '''
+    # print(request.data)
+    # x =  '{ "name":"John", "age":30, "city":"New York"}'
+    # grabbing data and converting to Dict
+    # turns json into dict
+    # x = json.loads(x)
+    # y = json.loads(json_response)
+    # print(x)
+    # if request.method == "POST":
+        # Ensure username was submitted
+        # print("hello")
+        # if not request.form.get("username"):
+        #     return render_template("error.html", message="must provide username")
+    # if request.method == "GET":
+    #     print("Get request")
+    
+    # json_response = request.json
+
+    # grabbing value
+    # print(json_response['name'])
