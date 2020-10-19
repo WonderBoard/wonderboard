@@ -33,6 +33,12 @@ deactivate enviroment
 
 deactivate
 
+Backend(port 5000): 
+flask run
+
+frontend(port 3000):
+yarn start or npm start
+
 
 TODO Notes deployment:
 Find way to automate build file to go into root when building for frontend
