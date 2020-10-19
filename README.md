@@ -6,6 +6,7 @@ tested on macOS
 
 
 For enviroment setup:
+
 Add a .flaskenv file in root
 
 In .flaskenv add:
