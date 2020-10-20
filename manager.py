@@ -91,11 +91,10 @@ def register():
     # session.clear()
     
     # User reached route via POST (as by submitting a form via POST)
-# @app.route("/register", methods=["GET", "POST"])
-# def register():
+    # @app.route("/register", methods=["GET", "POST"])
+    # def register():
 
-
-#Convert json request to dict
+    #Convert json request to dict
     # json_response = request.json
     """ Register user """
     # print("hello")
@@ -121,3 +120,19 @@ def register():
 
     # grabbing value
     # print(json_response['name'])
+
+
+@app.route("/api/login", methods=["POST", "GET"])
+def login():
+    
+    json_response = request.json
+
+    return json_response
+
+
+@app.route("/api/logout", methods=["POST", "GET"])
+def logout():
+    
+    json_response = request.json
+
+    return json_response
