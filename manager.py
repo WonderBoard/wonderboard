@@ -2,14 +2,13 @@ import time
 import os
 import requests
 import psycopg2
+from decorator import login_required
 from flask_cors import CORS
 from flask_session import Session
-from flask import Flask, session, redirect, render_template, request, jsonify, flash, json
+from flask import Flask, session, request, jsonify, flash, json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from werkzeug.security import check_password_hash, generate_password_hash
-
-#DATABASE_URL=postgres://postgres:Sugarnax93@localhost:5432/wonderboard
 
 app = Flask('__name__', static_folder="./build", static_url_path='/')
 
@@ -43,28 +42,26 @@ if not os.getenv("DATABASE_URL"):
 # heroku and local database go here: for local postgres://user:password@hostname/database_name'
 engine = create_engine(os.getenv('DATABASE_URL'))
 
-# Configure session to use filesystem
+# session file system
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 CORS(app)
 
-# Set up database
-
-# create a 'scoped session' that ensures different users' interactions with the
-# database are kept separate
+# make sure each user has own session
 db = scoped_session(sessionmaker(bind=engine))
 
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
 
-@app.route('/api/time')
+@app.route('/api/time', methods=["POST", "GET"])
+@login_required
 def get_current_time():
     row = db.execute("Select * from users")
     
-    bookId = row.fetchone()
-    print(bookId)
+    testrow = row.fetchone()
+    print(testrow)
     # resut = conn.execute('Select * from users')
     # cursor
     # cur = con.cursor()
@@ -76,7 +73,7 @@ def get_current_time():
     # # #close the connection
     # con.close()
 
-    return {'time': time.time()}
+    return {'times': time.time()}
 
 
 
@@ -84,9 +81,45 @@ def get_current_time():
 @app.route("/api/register", methods=["POST", "GET"])
 def register():
     
+    session.clear()
+    
     json_response = request.json
 
-    return json_response
+    if request.method == "POST":
+
+    # username was submitted
+        if not json_response["username"]:
+            return {"messgage": "no username", "success": False}
+
+        # check username in db
+        user_check = db.execute("SELECT * FROM users WHERE user_name = :username",
+                            {"username": json_response["username"]}).fetchone()
+        print(user_check)
+        # Check if username already exist
+        if user_check:
+            return {"messgage": "no username", "success": False}
+
+        # Ensure password was submitted
+        elif not json_response["password"]:
+            return {"messgage": "no password", "success": False}
+        
+        # submission confirmation
+        elif not json_response["confirmation"]:
+            return {"messgage": "no password confirmation", "success": False}
+
+        # hash password
+        hash_pass = generate_password_hash(json_response["password"], method='pbkdf2:sha256', salt_length=8)
+
+
+        # Insert register info
+        db.execute("INSERT INTO users (user_name, user_email, user_password) VALUES (:username, :useremail, :password)",
+                            {"username":json_response["username"],
+                            "useremail":json_response["email"],
+                             "password":hash_pass})
+
+        db.commit()
+
+    return { "message" : "login", "success": True}
     # Forget any user_id
     # session.clear()
     
@@ -96,7 +129,8 @@ def register():
 
     #Convert json request to dict
     # json_response = request.json
-    """ Register user """
+
+
     # print("hello")
     # '''
     # Testing things
@@ -124,15 +158,57 @@ def register():
 
 @app.route("/api/login", methods=["POST", "GET"])
 def login():
-    
     json_response = request.json
+
+    session.clear()
+
+    username = json_response["username"]
+
+    if request.method == "POST":
+
+        # Ensure username was submitted
+        if not json_response["username"]:
+            return {"messgage": "no username", "success": False}
+
+        # Ensure password was submitted
+        elif not json_response["password"]:
+            return {"messgage": "no password", "success": False}
+
+        #s elect username
+        rows = db.execute("SELECT * FROM users WHERE user_name = :username",
+                            {"username": username})
+        
+        result = rows.fetchone()
+
+        # print(result)
+        # Ensure username exists and password is correct
+        # print(" {} = {} ".format(result[3], json_response["password"]))
+        if result == None or not check_password_hash(result[3], json_response["password"]):
+            return {"error": "username exists and password is correct"}
+
+        # Get info from user and store it
+        session["user_id"] = result[0]
+        session["user_name"] = result[1]
+        session["user_email"] = result[2]
+
+        # home page
+        return {"redirect": "homepage"}
+
+    # login
+    else:
+        return {"redirect": "login"}
 
     return json_response
 
 
 @app.route("/api/logout", methods=["POST", "GET"])
 def logout():
-    
+    session.clear()
     json_response = request.json
 
     return json_response
+
+@app.route("/api/checkSession")
+def checking():
+    print(session["user_id"])
+    return  session["user_id"]
