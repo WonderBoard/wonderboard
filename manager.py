@@ -11,6 +11,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask('__name__', static_folder="./build", static_url_path='/')
+app.secret_key = "abc"  
 
 # url = urlparse.urlparse(os.environ['DATABASE_URL'])
 # db = "dbname=%s user=%s password=%s host=%s " % (url.path[1:], url.username, url.password, url.hostname)
@@ -91,29 +92,46 @@ def register():
     session.clear()
     
     json_response = request.json
-    print(json_response)
+
+    print(json_response.get("username"))
+
+    # email = json_response.get("email")
+
+    # print(" {}  this is get".format(json_response.get('username')))
+    # username = json_response.get("username")
+
+    # if 
+
+    # print(username)
+
+    # print(json_response)
     if request.method == "POST":
 
-    # username was submitted
-        if not json_response["username"]:
-            return {"messgage": "no username", "success": False}
+        # username not empty
+        if json_response.get("username") == '':
+            return {"message": "no username", "success": False}
 
-        # check username in db
-        user_check = db.execute("SELECT * FROM users WHERE user_name = :username",
-                            {"username": json_response["username"]}).fetchone()
-        print(user_check)
-
-        # Check if username already exist
-        if user_check:
-            return {"messgage": "user exists", "success": False}
-
-        # Ensure password was submitted
-        elif not json_response["password"]:
-            return {"messgage": "no password", "success": False}
+        # password not empty
+        elif json_response.get("password") == '':
+            return {"message": "no password", "success": False}
         
-        # submission confirmation
-        elif not json_response["confirmation"]:
-            return {"messgage": "no password confirmation", "success": False}
+        # email not empty
+        elif json_response.get("email") == '':
+            return {"message": "no email", "success": False}
+        
+        # confirmation not empty
+        elif json_response.get("confirmation") == '':
+            return {"message": "no confirmation", "success": False}
+
+        # query to see if email exist in database
+        email_check = db.execute("SELECT * FROM users WHERE user_email = :email",
+                        {"email": json_response.get("email")}).fetchone()
+        
+        # check if email already exists
+        if email_check:
+            return {"message": "email exists", "success": False}
+        
+        print(email_check)
 
         # hash password
         hash_pass = generate_password_hash(json_response["password"], method='pbkdf2:sha256', salt_length=8)
@@ -121,13 +139,16 @@ def register():
 
         # Insert register info
         db.execute("INSERT INTO users (user_name, user_email, user_password) VALUES (:username, :useremail, :password)",
-                            {"username":json_response["username"],
-                            "useremail":json_response["email"],
+                            {"username":json_response.get("username"),
+                            "useremail":json_response.get("email"),
                              "password":hash_pass})
 
         db.commit()
 
-    return { "message" : "login", "success": True}
+    return { "message" : "congrats for registering", "success": True}
+
+
+
     # Forget any user_id
     # session.clear()
     
@@ -168,37 +189,45 @@ def register():
 def login():
     json_response = request.json
 
-    session.clear()
+    print(json_response)
+    
+    # session.clear()
 
-    username = json_response["username"]
-
+    # for request
+    email = json_response.get("email")
+    
+    
     if request.method == "POST":
 
-        # Ensure username was submitted
-        if not json_response["username"]:
-            return {"messgage": "no username", "success": False}
+        # check if username was submitted
+        if json_response.get("email") == "":
+            return {"messgage": "no email", "success": False}
 
-        # Ensure password was submitted
-        elif not json_response["password"]:
+        # check if password was submitted
+        elif json_response.get("password") == "":
             return {"messgage": "no password", "success": False}
 
-        #s elect username
-        rows = db.execute("SELECT * FROM users WHERE user_name = :username",
-                            {"username": username})
+        # select were unique email is
+        rows = db.execute("SELECT * FROM users WHERE user_email = :email",
+                            {"email": email})
         
-        result = rows.fetchone()
+        #extract row
+        row_result = rows.fetchone()
+
+        #get hashed password 
+        hashed_pass = row_result[3]
 
         # print(result)
-        # Ensure username exists and password is correct
-        # print(" {} = {} ".format(result[3], json_response["password"]))
-        if result == None or not check_password_hash(result[3], json_response["password"]):
+        # verify result and hashed password
+        if  row_result == None or not check_password_hash(hashed_pass, json_response["password"]):
             return {"error": "username exists and password is correct"}
 
         # Get info from user and store it
-        session["user_id"] = result[0]
-        session["user_name"] = result[1]
-        session["user_email"] = result[2]
+        session['userid'] = "hello"
+        session['username'] = row_result[1]
+        session['useremail'] = row_result[2]
 
+        print(session.get('user_id'))
         # home page
         return {"redirect": "homepage"}
 
@@ -216,8 +245,13 @@ def logout():
 
     return {"message": "logout"}
 
-@app.route("/api/checkSession")
-@login_required
+@app.route("/api/checksession", methods=["POST", "GET"])
+# @login_required
 def checking():
-    print(session["user_id"])
-    return  session["user_id"]
+    # print('hello')
+    if session.get('userid') == None:
+          print("hello") 
+    json_response = request.json
+    # print(session.get("user_id"))
+    # return  session["user_id"
+    return json_response
