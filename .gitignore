@@ -1,3 +1,4 @@
 .flaskenv
 .idea/
 *.idea
+node_modules/
