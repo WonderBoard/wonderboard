@@ -81,10 +81,17 @@ def get_current_time():
 @app.route("/api/register", methods=["POST", "GET"])
 def register():
     
+    #{
+    #"username": "hae2222",
+    #"email": "email@emaild2dd323w363.com",
+    #"password": "daosdkd",
+    #"confirmation": "hl"
+    # }
+    
     session.clear()
     
     json_response = request.json
-
+    print(json_response)
     if request.method == "POST":
 
     # username was submitted
@@ -95,9 +102,10 @@ def register():
         user_check = db.execute("SELECT * FROM users WHERE user_name = :username",
                             {"username": json_response["username"]}).fetchone()
         print(user_check)
+
         # Check if username already exist
         if user_check:
-            return {"messgage": "no username", "success": False}
+            return {"messgage": "user exists", "success": False}
 
         # Ensure password was submitted
         elif not json_response["password"]:
@@ -206,9 +214,10 @@ def logout():
     session.clear()
     json_response = request.json
 
-    return json_response
+    return {"message": "logout"}
 
 @app.route("/api/checkSession")
+@login_required
 def checking():
     print(session["user_id"])
     return  session["user_id"]
